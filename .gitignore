@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Xcode
+xcuserdata/
+DerivedData/
+build/
+*.xcresult
+
+# XcodeGen が生成する(project.yml から `xcodegen generate` で再生成)
+*.xcodeproj
+
+# SwiftPM
+.build/
+.swiftpm/
