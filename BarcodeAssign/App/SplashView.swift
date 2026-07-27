@@ -62,13 +62,13 @@ struct SplashView: View {
             // 動きなしでも出現順(ピ → 三本線 → 残り)は伝える
             compositionOffset = 0
             withAnimation(.easeOut(duration: 0.3)) { isPiVisible = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
                 withAnimation(.easeOut(duration: 0.2)) { isSparkVisible = true }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.65) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 withAnimation(.easeOut(duration: 0.35)) { isRestVisible = true }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.3, execute: onFinished)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: onFinished)
             return
         }
 
@@ -90,20 +90,21 @@ struct SplashView: View {
                 }
             }
         }
-        // 3. 三本線がパッと出現(「ピッ!」の瞬間)
+        // 3. 三本線がパッと出現(「ピッ!」の瞬間)→ 余韻をひと呼吸置く
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.78) {
             withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
                 isSparkVisible = true
             }
         }
         // 4. 残りがフェードインし、「ピ」は定位置へスライド
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.98) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
             withAnimation(.easeOut(duration: 0.35)) {
                 isRestVisible = true
                 compositionOffset = 0
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6, execute: onFinished)
+        // 5. 合体したロゴをひと呼吸見せてから終了
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.4, execute: onFinished)
     }
 }
 
