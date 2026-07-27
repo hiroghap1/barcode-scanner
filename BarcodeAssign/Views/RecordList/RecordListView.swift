@@ -78,10 +78,10 @@ struct RecordListView: View {
                 startScan()
             } label: {
                 Label("スキャン開始", systemImage: "camera")
+                    .fontWeight(.bold)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            // CTA はダークモードでもブランドの濃い緑で統一する
             .tint(Color("BrandGreen"))
             .controlSize(.large)
             .disabled(project.totalCount == 0)

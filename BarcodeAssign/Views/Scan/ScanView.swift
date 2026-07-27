@@ -172,6 +172,7 @@ struct ScanView: View {
                     UIApplication.shared.open(url)
                 }
             }
+            .fontWeight(.bold)
             .buttonStyle(.borderedProminent)
             .tint(Color("BrandGreen"))
         }
@@ -279,6 +280,7 @@ struct ScanView: View {
                     onExport?()
                     dismiss()
                 }
+                .fontWeight(.bold)
                 .buttonStyle(.borderedProminent)
                 .tint(Color("BrandGreen"))
             }

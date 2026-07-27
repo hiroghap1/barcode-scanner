@@ -51,6 +51,7 @@ struct ImportView: View {
                 ColumnMappingView(draft: draft, onComplete: onComplete)
             } label: {
                 Text("次へ")
+                    .fontWeight(.bold)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
@@ -137,6 +138,7 @@ struct ImportView: View {
                 Text("CSV / TSV / テキストファイルを選択してください(UTF-8 / Shift_JIS 対応)")
             } actions: {
                 Button("ファイルを選択") { isFilePickerPresented = true }
+                    .fontWeight(.bold)
                     .buttonStyle(.borderedProminent)
                     .tint(Color("BrandGreen"))
             }

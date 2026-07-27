@@ -40,10 +40,11 @@ struct HomeView: View {
                 isImportPresented = true
             } label: {
                 Label("新しい取込", systemImage: "plus")
+                    .fontWeight(.bold)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            // CTA はダークモードでもブランドの濃い緑で統一する
+            // CTA は両モードともブランドの濃い緑 + 白太字(視認性を実機確認済み)
             .tint(Color("BrandGreen"))
             .controlSize(.large)
             .padding()
