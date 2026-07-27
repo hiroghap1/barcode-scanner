@@ -43,6 +43,8 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
+            // CTA はダークモードでもブランドの濃い緑で統一する
+            .tint(Color("BrandGreen"))
             .controlSize(.large)
             .padding()
             .background(.bar)

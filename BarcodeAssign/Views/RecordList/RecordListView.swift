@@ -81,6 +81,8 @@ struct RecordListView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
+            // CTA はダークモードでもブランドの濃い緑で統一する
+            .tint(Color("BrandGreen"))
             .controlSize(.large)
             .disabled(project.totalCount == 0)
             .padding()

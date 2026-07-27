@@ -54,6 +54,7 @@ struct ImportView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
+            .tint(Color("BrandGreen"))
             .controlSize(.large)
             .disabled(!draft.hasData)
         }
@@ -137,6 +138,7 @@ struct ImportView: View {
             } actions: {
                 Button("ファイルを選択") { isFilePickerPresented = true }
                     .buttonStyle(.borderedProminent)
+                    .tint(Color("BrandGreen"))
             }
             .frame(maxHeight: .infinity)
         }

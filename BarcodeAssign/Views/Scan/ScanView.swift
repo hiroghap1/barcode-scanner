@@ -173,6 +173,7 @@ struct ScanView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
+            .tint(Color("BrandGreen"))
         }
     }
 
@@ -279,6 +280,7 @@ struct ScanView: View {
                     dismiss()
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(Color("BrandGreen"))
             }
             Button("一覧へ戻る") { dismiss() }
                 .buttonStyle(.bordered)
