@@ -138,6 +138,82 @@ final class ImportFlowUITests: XCTestCase {
         attachScreenshot(of: app, name: "S4-1000行")
     }
 
+    /// スキャンフロー(S5)の E2E。カメラの読取はシミュレータで動かないため、
+    /// 手動入力(⌨)で「登録 → 自動送り → 重複警告 → スキップ → 完了」を検証する。
+    @MainActor
+    func testScanFlowWithManualEntry() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        // 3 行(すべて未登録)のプロジェクトを作る
+        app.buttons["新しい取込"].tap()
+        let editor = app.textViews.firstMatch
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+        editor.tap()
+        editor.typeText("sku,name,jan\nA001,shirt,\nA002,pants,\nA003,cap,\n")
+        app.buttons["次へ"].tap()
+        XCTAssertTrue(app.navigationBars["列の設定"].waitForExistence(timeout: 5))
+        app.buttons["取込"].tap()
+        XCTAssertTrue(app.staticTexts["登録 0 ・ スキップ 0 ・ 残り 3"].waitForExistence(timeout: 5))
+
+        // スキャン開始 → S5(カメラ権限アラートが出たら許可)
+        app.buttons["スキャン開始"].tap()
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        for label in ["OK", "許可", "Allow"] {
+            let button = springboard.alerts.buttons[label]
+            if button.waitForExistence(timeout: 3) {
+                button.tap()
+                break
+            }
+        }
+        XCTAssertTrue(app.staticTexts["shirt"].waitForExistence(timeout: 5), "先頭の未登録行が表示されること")
+
+        // 手動入力で登録 → 次の行へ自動送り
+        enterManualCode(app, code: "4901111111111")
+        XCTAssertTrue(app.staticTexts["pants"].waitForExistence(timeout: 5), "登録後に次の未登録行へ進むこと")
+        attachScreenshot(of: app, name: "S5-スキャン")
+
+        // 同じコードは重複警告 → キャンセルで登録しない
+        enterManualCode(app, code: "4901111111111")
+        XCTAssertTrue(
+            app.staticTexts["このバーコードは既に登録されています"].waitForExistence(timeout: 5),
+            "重複警告が表示されること"
+        )
+        attachScreenshot(of: app, name: "S5-重複警告")
+        app.buttons["キャンセル"].tap()
+        XCTAssertTrue(app.staticTexts["pants"].waitForExistence(timeout: 5), "キャンセル後は同じ行に留まること")
+
+        // 別のコードで登録 → 最終行へ
+        enterManualCode(app, code: "4902222222222")
+        XCTAssertTrue(app.staticTexts["cap"].waitForExistence(timeout: 5))
+
+        // 最後の行をスキップ → 全行完了
+        app.buttons["scan.skip"].tap()
+        XCTAssertTrue(
+            app.staticTexts["すべて完了しました 🎉"].waitForExistence(timeout: 5),
+            "未登録行がなくなると完了画面が表示されること"
+        )
+        attachScreenshot(of: app, name: "S5-完了")
+        app.buttons["一覧へ戻る"].tap()
+
+        // S4 に反映されていること
+        XCTAssertTrue(
+            app.staticTexts["登録 2 ・ スキップ 1 ・ 残り 0"].waitForExistence(timeout: 5),
+            "スキャン結果が一覧の集計に反映されること"
+        )
+    }
+
+    /// S5 の手動入力アラートにコードを入力して登録する
+    @MainActor
+    private func enterManualCode(_ app: XCUIApplication, code: String) {
+        app.buttons["scan.manual"].tap()
+        let field = app.textFields["バーコードの値"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5), "手動入力アラートが表示されること")
+        field.tap()
+        field.typeText(code)
+        app.buttons["登録"].tap()
+    }
+
     /// Files ピッカーで指定名のファイルセルを探す。
     /// 最近使った項目に出なければ「ブラウズ > このiPhone内」を辿る
     /// (ファイルはセル単位でタップする。ラベルは「sample, csv, …」形式)。

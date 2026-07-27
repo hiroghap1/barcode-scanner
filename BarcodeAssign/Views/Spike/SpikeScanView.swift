@@ -56,7 +56,7 @@ struct SpikeScanView: View {
                 .background(Color.black)
                 .overlay {
                     if restrictToCenterBand {
-                        guideBandOverlay
+                        GuideBandOverlay(bandRatio: bandRatio)
                     }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -109,24 +109,6 @@ struct SpikeScanView: View {
                 regionHeightRatio: ratio
             )
         }
-    }
-
-    /// 読取帯の外側を暗くし、帯の境界を線で示すガイド
-    private var guideBandOverlay: some View {
-        GeometryReader { geometry in
-            let bandHeight = geometry.size.height * bandRatio
-            let inset = (geometry.size.height - bandHeight) / 2
-            VStack(spacing: 0) {
-                Color.black.opacity(0.45)
-                    .frame(height: inset)
-                Rectangle()
-                    .strokeBorder(.yellow, lineWidth: 2)
-                    .frame(height: bandHeight)
-                Color.black.opacity(0.45)
-                    .frame(height: inset)
-            }
-        }
-        .allowsHitTesting(false)
     }
 
     private var resultPanel: some View {

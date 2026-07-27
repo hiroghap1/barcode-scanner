@@ -1,13 +1,15 @@
 import SwiftUI
 import SwiftData
+import BarcodeAssignCore
 
 /// S4 レコード一覧。プロジェクトのハブ画面。
-/// スキャン(S5)へは P3、出力(S6)へは P4 で結線する。
+/// 行タップ・スキャン開始でスキャン(S5)へ。出力(S6)へは P4 で結線する。
 struct RecordListView: View {
     @Bindable var project: Project
 
     @State private var filter: RowFilter = .all
     @State private var searchText = ""
+    @State private var isScanPresented = false
 
     /// 行の状態フィルタ
     enum RowFilter: String, CaseIterable, Identifiable {
@@ -35,16 +37,21 @@ struct RecordListView: View {
             }
             Section {
                 ForEach(filteredRows) { row in
-                    RecordRowView(row: row, project: project)
-                        .swipeActions(edge: .trailing) {
-                            skipToggleButton(for: row)
-                            if row.barcode != nil {
-                                Button("コードを消去", systemImage: "xmark.circle") {
-                                    clearBarcode(of: row)
-                                }
-                                .tint(.red)
+                    Button {
+                        startScan(at: row)
+                    } label: {
+                        RecordRowView(row: row, project: project)
+                    }
+                    .buttonStyle(.plain)
+                    .swipeActions(edge: .trailing) {
+                        skipToggleButton(for: row)
+                        if row.barcode != nil {
+                            Button("コードを消去", systemImage: "xmark.circle") {
+                                clearBarcode(of: row)
                             }
+                            .tint(.red)
                         }
+                    }
                 }
             } footer: {
                 if filteredRows.isEmpty {
@@ -56,23 +63,43 @@ struct RecordListView: View {
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "識別・表示・コードで検索")
         .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 4) {
-                Button {
-                    // P3 でスキャン画面(S5)へ結線する
-                } label: {
-                    Label("スキャン開始", systemImage: "camera")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(true)
-                Text("スキャンは P3 で実装予定")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+            Button {
+                startScan()
+            } label: {
+                Label("スキャン開始", systemImage: "camera")
+                    .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(project.totalCount == 0)
             .padding()
             .background(.bar)
         }
+        .fullScreenCover(isPresented: $isScanPresented) {
+            ScanView(project: project)
+        }
+    }
+
+    // MARK: - スキャン開始
+
+    /// 現在位置(未登録でなければ最初の未登録行)からスキャンを開始する
+    private func startScan() {
+        let pending = project.sortedRows.map { $0.status == .pending }
+        if let start = ScanNavigator.startIndex(isPending: pending, preferring: project.currentPosition) {
+            project.currentPosition = start
+        } else {
+            // 未登録行なし → 完了画面が表示される
+            project.currentPosition = pending.count
+        }
+        isScanPresented = true
+    }
+
+    /// 指定行を開始位置にしてスキャンを開始する(登録済み行の上書きにも使う)
+    private func startScan(at row: Row) {
+        if let index = project.sortedRows.firstIndex(where: { $0 === row }) {
+            project.currentPosition = index
+        }
+        isScanPresented = true
     }
 
     // MARK: - 進捗・フィルタ
