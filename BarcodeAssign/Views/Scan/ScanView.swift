@@ -221,42 +221,47 @@ struct ScanView: View {
     }
 
     private var controlBar: some View {
-        HStack(spacing: 12) {
-            Button {
+        HStack(spacing: 8) {
+            controlButton("前へ", systemImage: "chevron.backward", identifier: "scan.previous") {
                 moveToPrevious()
-            } label: {
-                Label("前へ", systemImage: "chevron.backward")
-                    .frame(maxWidth: .infinity)
             }
-            .accessibilityIdentifier("scan.previous")
-            Button {
+            controlButton("スキップ", systemImage: "forward.end", identifier: "scan.skip") {
                 skipCurrent()
-            } label: {
-                Label("スキップ", systemImage: "forward.end")
-                    .frame(maxWidth: .infinity)
             }
-            .accessibilityIdentifier("scan.skip")
-            Button {
+            controlButton("一覧", systemImage: "list.bullet", identifier: "scan.list") {
                 dismiss()
-            } label: {
-                Label("一覧", systemImage: "list.bullet")
-                    .frame(maxWidth: .infinity)
             }
-            .accessibilityIdentifier("scan.list")
-            Button {
+            controlButton("手動入力", systemImage: "keyboard", identifier: "scan.manual") {
                 isManualEntryPresented = true
-            } label: {
-                Label("手動", systemImage: "keyboard")
-                    .frame(maxWidth: .infinity)
             }
-            .accessibilityIdentifier("scan.manual")
         }
-        .labelStyle(.titleAndIcon)
-        .buttonStyle(.bordered)
-        .controlSize(.small)
         .padding(.horizontal)
-        .padding(.bottom)
+        .padding(.bottom, 8)
         .background(Color(.systemBackground))
+    }
+
+    /// 下部メニューのボタン(アイコン上・文字下の均等幅。文字は折り返さない)
+    private func controlButton(
+        _ title: String,
+        systemImage: String,
+        identifier: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: systemImage)
+                    .font(.title3)
+                Text(title)
+                    .font(.caption2)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+        }
+        .buttonStyle(.bordered)
+        .accessibilityIdentifier(identifier)
+        .accessibilityLabel(title)
     }
 
     // MARK: - 完了画面
