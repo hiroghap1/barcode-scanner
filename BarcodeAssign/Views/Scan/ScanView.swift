@@ -24,6 +24,8 @@ struct ScanView: View {
     @State private var manualCode = ""
     /// 読取成功時にカードを一瞬緑にフラッシュ
     @State private var isFlashingSuccess = false
+    /// 行送りアニメーションの方向(進む: 下から / 戻る: 上から)
+    @State private var advanceEdge: Edge = .bottom
 
     /// 中央帯の高さ比率(スパイクで検証済みの値)
     private let bandRatio: CGFloat = 0.35
@@ -48,12 +50,20 @@ struct ScanView: View {
             VStack(spacing: 0) {
                 if let row = currentRow {
                     scannerArea
-                    productCard(for: row)
+                    // 前後の行を小さく見せ、リストを進んでいる感覚を出す
+                    VStack(spacing: 0) {
+                        adjacentRowView(previousRow)
+                        productCard(for: row)
+                        adjacentRowView(nextRow)
+                    }
+                    .id(project.currentPosition)
+                    .transition(.push(from: advanceEdge))
                     controlBar
                 } else {
                     completedView
                 }
             }
+            .clipped()
             .navigationTitle("\(project.registeredCount) / \(project.totalCount)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -124,6 +134,19 @@ struct ScanView: View {
         project.totalCount == 0 ? 0 : Double(project.registeredCount) / Double(project.totalCount)
     }
 
+    /// リスト順での前後の行(状態は問わない。「一覧を進んでいる」感覚を優先)
+    private var previousRow: Row? {
+        let rows = sortedRows
+        let index = project.currentPosition - 1
+        return index >= 0 && index < rows.count ? rows[index] : nil
+    }
+
+    private var nextRow: Row? {
+        let rows = sortedRows
+        let index = project.currentPosition + 1
+        return index >= 0 && index < rows.count ? rows[index] : nil
+    }
+
     // MARK: - カメラ
 
     @ViewBuilder
@@ -188,6 +211,34 @@ struct ScanView: View {
     }
 
     // MARK: - 商品情報カード・操作
+
+    /// 前後の行のミニ表示(現在行の上下に小さく置き、リストの流れを見せる)
+    @ViewBuilder
+    private func adjacentRowView(_ row: Row?) -> some View {
+        HStack(spacing: 6) {
+            if let row {
+                Text(row.value(at: project.identifierColumnIndex))
+                    .font(.caption.monospaced())
+                Text(row.value(at: project.displayColumnIndex))
+                    .font(.caption)
+                    .lineLimit(1)
+                Spacer()
+                if row.barcode != nil {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.green)
+                }
+            } else {
+                Text(" ").font(.caption) // 端でも高さを揃えるためのプレースホルダ
+            }
+        }
+        .foregroundStyle(.secondary)
+        .opacity(0.6)
+        .padding(.horizontal)
+        .padding(.vertical, 3)
+        .background(Color(.secondarySystemBackground))
+        .accessibilityHidden(true)
+    }
 
     private func productCard(for row: Row) -> some View {
         VStack(spacing: 6) {
@@ -325,14 +376,17 @@ struct ScanView: View {
         project.updatedAt = .now
 
         let rows = sortedRows
-        if let next = ScanNavigator.nextPendingIndex(
-            isPending: rows.map { $0.status == .pending },
-            after: project.currentPosition
-        ) {
-            project.currentPosition = next
-        } else {
-            // 全行完了。currentPosition は範囲外にして完了画面を表示する
-            project.currentPosition = rows.count
+        advanceEdge = .bottom
+        withAnimation(.easeInOut(duration: 0.3)) {
+            if let next = ScanNavigator.nextPendingIndex(
+                isPending: rows.map { $0.status == .pending },
+                after: project.currentPosition
+            ) {
+                project.currentPosition = next
+            } else {
+                // 全行完了。currentPosition は範囲外にして完了画面を表示する
+                project.currentPosition = rows.count
+            }
         }
         try? modelContext.save()
 
@@ -363,20 +417,26 @@ struct ScanView: View {
             project.updatedAt = .now
         }
         let rows = sortedRows
-        if let next = ScanNavigator.nextPendingIndex(
-            isPending: rows.map { $0.status == .pending },
-            after: project.currentPosition
-        ) {
-            project.currentPosition = next
-        } else {
-            project.currentPosition = rows.count
+        advanceEdge = .bottom
+        withAnimation(.easeInOut(duration: 0.3)) {
+            if let next = ScanNavigator.nextPendingIndex(
+                isPending: rows.map { $0.status == .pending },
+                after: project.currentPosition
+            ) {
+                project.currentPosition = next
+            } else {
+                project.currentPosition = rows.count
+            }
         }
         try? modelContext.save()
     }
 
     private func moveToPrevious() {
         guard project.currentPosition > 0 else { return }
-        project.currentPosition = min(project.currentPosition, sortedRows.count) - 1
+        advanceEdge = .top
+        withAnimation(.easeInOut(duration: 0.3)) {
+            project.currentPosition = min(project.currentPosition, sortedRows.count) - 1
+        }
         try? modelContext.save()
     }
 
