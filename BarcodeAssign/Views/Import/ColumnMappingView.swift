@@ -5,8 +5,8 @@ import BarcodeAssignCore
 /// S3 プレビュー & 列マッピング画面
 struct ColumnMappingView: View {
     @Bindable var draft: ImportDraft
-    /// 取込確定後にシート全体を閉じる
-    let onComplete: () -> Void
+    /// 取込確定後に呼ばれる(作成されたプロジェクトを渡す)
+    let onComplete: (Project) -> Void
 
     @Environment(\.modelContext) private var modelContext
 
@@ -166,9 +166,9 @@ struct ColumnMappingView: View {
     }
 
     private func confirmImport() {
-        draft.saveProject(in: modelContext)
+        let project = draft.saveProject(in: modelContext)
         try? modelContext.save()
-        onComplete()
+        onComplete(project)
     }
 }
 
@@ -176,7 +176,7 @@ struct ColumnMappingView: View {
     let draft = ImportDraft()
     draft.setSourceText("品番,商品名,JAN\nA001,Tシャツ白,4901234567890\nA002,Tシャツ黒,\nA003,Tシャツ灰,")
     return NavigationStack {
-        ColumnMappingView(draft: draft, onComplete: {})
+        ColumnMappingView(draft: draft, onComplete: { _ in })
     }
     .modelContainer(for: [Project.self, Row.self], inMemory: true)
 }

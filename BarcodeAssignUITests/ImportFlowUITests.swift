@@ -42,10 +42,25 @@ final class ImportFlowUITests: XCTestCase {
 
         app.buttons["取込"].tap()
 
-        // ルートに戻り、保存されたプロジェクトが表示されること
+        // 取込確定でレコード一覧(S4)へ遷移すること
         XCTAssertTrue(
-            app.staticTexts["登録済み 1 / 2 件"].firstMatch.waitForExistence(timeout: 5),
-            "既存コード 1 件が登録済みとして保存されること"
+            app.staticTexts["登録 1 ・ スキップ 0 ・ 残り 1"].waitForExistence(timeout: 5),
+            "既存コード 1 件が登録済みとして集計されること"
+        )
+        XCTAssertTrue(app.staticTexts["A001"].exists, "行が表示されること")
+        XCTAssertTrue(app.staticTexts["4901234567890"].exists, "既存コードが行に表示されること")
+        attachScreenshot(of: app, name: "S4-レコード一覧")
+
+        // 再起動しても、ホーム(S1)から同じデータを開き直せること(P2 完了条件)
+        app.terminate()
+        app.launch()
+        let card = app.staticTexts["登録済み 1 / 2 件"].firstMatch
+        XCTAssertTrue(card.waitForExistence(timeout: 5), "再起動後もホームにプロジェクトが表示されること")
+        attachScreenshot(of: app, name: "S1-ホーム")
+        card.tap()
+        XCTAssertTrue(
+            app.staticTexts["登録 1 ・ スキップ 0 ・ 残り 1"].waitForExistence(timeout: 5),
+            "ホームから同じデータを開き直せること"
         )
     }
 
@@ -65,18 +80,7 @@ final class ImportFlowUITests: XCTestCase {
         XCTAssertTrue(chooseButton.waitForExistence(timeout: 5))
         chooseButton.tap()
 
-        // Files ピッカー: 最近使った項目に出なければ「ブラウズ > このiPhone内」を辿る
-        // (ファイルはセル単位でタップする。ラベルは「sample, csv, …」形式)
-        let filePredicate = NSPredicate(format: "label BEGINSWITH[c] 'sample'")
-        var fileCell = app.cells.matching(filePredicate).firstMatch
-        if !fileCell.waitForExistence(timeout: 3) {
-            let browseTab = app.buttons["ブラウズ"]
-            if browseTab.waitForExistence(timeout: 3) { browseTab.tap() }
-            let localStorage = app.staticTexts["このiPhone内"]
-            if localStorage.waitForExistence(timeout: 3) { localStorage.tap() }
-            fileCell = app.cells.matching(filePredicate).firstMatch
-        }
-        if !fileCell.waitForExistence(timeout: 5) {
+        guard let fileCell = locateFileCell(in: app, prefix: "sample") else {
             throw XCTSkip("Files に sample.csv が無いためスキップ(手動配置時のみ実行)")
         }
         fileCell.tap()
@@ -87,6 +91,68 @@ final class ImportFlowUITests: XCTestCase {
         )
         XCTAssertTrue(app.staticTexts["sample.csv"].exists, "読み込んだファイル名が表示されること")
         attachScreenshot(of: app, name: "S2-CSVファイル")
+    }
+
+    /// 1,000 行規模の取込とスクロール(P2 完了条件の性能確認)。
+    /// シミュレータの Files に large.csv(1000 行 × 3 列・カンマ区切り)を配置した場合のみ
+    /// 実行される(見つからなければスキップ)。
+    /// ペースト経由は iOS の許可アラート(UIPasteboard 同期読取のメインスレッドブロック)が
+    /// 自動化を不安定にするため、CSV ファイル経由で行う。
+    @MainActor
+    func testLargeCSVImportAndScroll() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        app.buttons["新しい取込"].tap()
+        app.buttons["CSV ファイル"].tap()
+        let chooseButton = app.buttons["ファイルを選択"]
+        XCTAssertTrue(chooseButton.waitForExistence(timeout: 5))
+        chooseButton.tap()
+
+        guard let fileCell = locateFileCell(in: app, prefix: "large") else {
+            throw XCTSkip("Files に large.csv が無いためスキップ(手動配置時のみ実行)")
+        }
+        fileCell.tap()
+
+        // SwiftUI の Text 補間は Int を桁区切り付きで表示する("1,000行")
+        XCTAssertTrue(
+            app.staticTexts["1,000行 × 3列を検出(区切り: カンマ)"].waitForExistence(timeout: 20),
+            "1,000 行の CSV を読み込めること"
+        )
+
+        app.buttons["次へ"].tap()
+        XCTAssertTrue(app.navigationBars["列の設定"].waitForExistence(timeout: 5))
+        app.buttons["取込"].tap()
+
+        // 1,000 行の保存と一覧表示が完了すること
+        XCTAssertTrue(
+            app.staticTexts["登録 0 ・ スキップ 0 ・ 残り 1,000"].waitForExistence(timeout: 30),
+            "1,000 行の取込が完了して一覧に集計が表示されること"
+        )
+
+        // スクロールが完走すること(致命的な性能問題がないことの確認)
+        for _ in 0..<10 {
+            app.swipeUp(velocity: .fast)
+        }
+        XCTAssertTrue(app.buttons["スキャン開始"].exists, "スクロール後も画面が応答すること")
+        attachScreenshot(of: app, name: "S4-1000行")
+    }
+
+    /// Files ピッカーで指定名のファイルセルを探す。
+    /// 最近使った項目に出なければ「ブラウズ > このiPhone内」を辿る
+    /// (ファイルはセル単位でタップする。ラベルは「sample, csv, …」形式)。
+    @MainActor
+    private func locateFileCell(in app: XCUIApplication, prefix: String) -> XCUIElement? {
+        let predicate = NSPredicate(format: "label BEGINSWITH[c] %@", prefix)
+        var cell = app.cells.matching(predicate).firstMatch
+        if cell.waitForExistence(timeout: 3) { return cell }
+
+        let browseTab = app.buttons["ブラウズ"]
+        if browseTab.waitForExistence(timeout: 3) { browseTab.tap() }
+        let localStorage = app.staticTexts["このiPhone内"]
+        if localStorage.waitForExistence(timeout: 3) { localStorage.tap() }
+        cell = app.cells.matching(predicate).firstMatch
+        return cell.waitForExistence(timeout: 5) ? cell : nil
     }
 
     @MainActor

@@ -4,8 +4,8 @@ import BarcodeAssignCore
 
 /// 取込フロー(S2 → S3)のルート。シートとして表示する。
 struct ImportFlowView: View {
-    /// 取込確定後にシート全体を閉じる
-    let onComplete: () -> Void
+    /// 取込確定後に呼ばれる(呼び出し側でシートを閉じ、作成されたプロジェクトへ遷移する)
+    let onComplete: (Project) -> Void
 
     @State private var draft = ImportDraft()
 
@@ -19,7 +19,7 @@ struct ImportFlowView: View {
 /// S2 データ取込画面
 struct ImportView: View {
     @Bindable var draft: ImportDraft
-    let onComplete: () -> Void
+    let onComplete: (Project) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var method: ImportMethod = .paste
@@ -180,5 +180,5 @@ struct ImportView: View {
 }
 
 #Preview {
-    ImportFlowView(onComplete: {})
+    ImportFlowView(onComplete: { _ in })
 }

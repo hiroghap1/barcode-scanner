@@ -95,7 +95,9 @@ final class ImportDraft {
                 row.barcode = code
                 row.status = .registered
             }
-            project.rows.append(row)
+            // to-many 側への append は毎回配列を書き換え大量行で遅いため to-one 側で関連付ける
+            context.insert(row)
+            row.project = project
         }
         project.currentPosition = plan.rows.firstIndex { $0.existingBarcode == nil } ?? 0
         return project
