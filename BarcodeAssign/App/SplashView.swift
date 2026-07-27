@@ -50,12 +50,13 @@ struct SplashView: View {
 
     private func run() {
         guard !reduceMotion else {
+            // 動きなしでも「ピ → 残り」の二段階は伝える(順次フェード)
             compositionOffset = 0
-            withAnimation(.easeOut(duration: 0.4)) {
-                isPiVisible = true
-                isRestVisible = true
+            withAnimation(.easeOut(duration: 0.45)) { isPiVisible = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                withAnimation(.easeOut(duration: 0.5)) { isRestVisible = true }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2, execute: onFinished)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.6, execute: onFinished)
             return
         }
         // 1. 「ピ」が画面中央にポップ表示
