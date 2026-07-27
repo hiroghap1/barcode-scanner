@@ -18,7 +18,8 @@ struct RootView: View {
             }
             if isSplashVisible {
                 SplashView {
-                    withAnimation(.easeOut(duration: 0.35)) {
+                    // ロゴ完成の余韻からホームへゆっくり切り替える
+                    withAnimation(.easeInOut(duration: 0.8)) {
                         isSplashVisible = false
                     }
                 }

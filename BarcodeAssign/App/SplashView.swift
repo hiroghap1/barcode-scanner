@@ -65,10 +65,10 @@ struct SplashView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
                 withAnimation(.easeOut(duration: 0.2)) { isSparkVisible = true }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.85) {
                 withAnimation(.easeOut(duration: 0.35)) { isRestVisible = true }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: onFinished)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.85, execute: onFinished)
             return
         }
 
@@ -96,15 +96,15 @@ struct SplashView: View {
                 isSparkVisible = true
             }
         }
-        // 4. 残りがフェードインし、「ピ」は定位置へスライド
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+        // 4. 三本線から 0.4 秒置いて、残りがフェードイン(「ピ」は定位置へスライド)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             withAnimation(.easeOut(duration: 0.35)) {
                 isRestVisible = true
                 compositionOffset = 0
             }
         }
-        // 5. 合体したロゴをひと呼吸見せてから終了
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.4, execute: onFinished)
+        // 5. 合体したロゴをひと呼吸見せてから終了(ホームへはゆっくりフェード)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2, execute: onFinished)
     }
 }
 
