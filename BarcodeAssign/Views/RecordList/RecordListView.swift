@@ -11,6 +11,8 @@ struct RecordListView: View {
     @State private var searchText = ""
     @State private var isScanPresented = false
     @State private var isExportPresented = false
+    @State private var isRenamePresented = false
+    @State private var renameText = ""
     /// S5 完了画面の「出力へ」でスキャンを閉じた直後に出力シートを開くためのフラグ
     @State private var pendingExportAfterScan = false
 
@@ -64,6 +66,12 @@ struct RecordListView: View {
         }
         .navigationTitle(project.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleMenu {
+            Button("名前を変更", systemImage: "pencil") {
+                renameText = project.name
+                isRenamePresented = true
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("出力", systemImage: "square.and.arrow.up") {
@@ -71,6 +79,17 @@ struct RecordListView: View {
                 }
                 .disabled(project.totalCount == 0)
             }
+        }
+        .alert("名前を変更", isPresented: $isRenamePresented) {
+            TextField("プロジェクト名", text: $renameText)
+            Button("変更") {
+                let trimmed = renameText.trimmingCharacters(in: .whitespaces)
+                if !trimmed.isEmpty {
+                    project.name = trimmed
+                    project.updatedAt = .now
+                }
+            }
+            Button("キャンセル", role: .cancel) {}
         }
         .searchable(text: $searchText, prompt: "識別・表示・コードで検索")
         .safeAreaInset(edge: .bottom) {

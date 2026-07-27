@@ -42,9 +42,11 @@ final class ImportFlowUITests: XCTestCase {
 
         // S3: 列マッピング(ヘッダー名から自動推定されるので既定値のまま)
         XCTAssertTrue(app.navigationBars["列の設定"].waitForExistence(timeout: 5))
+        // 集計セクションは画面下部のためスクロールして表示させる(Form は画面外を遅延生成する)
+        app.swipeUp()
         // LabeledContent の値は結合された accessibility 要素になるため、ラベル側の存在のみ確認する
         // (件数の正しさは取込後の「登録済み 1 / 2 件」で検証される)
-        XCTAssertTrue(app.staticTexts["行数"].exists, "行数の集計が表示されること")
+        XCTAssertTrue(app.staticTexts["行数"].waitForExistence(timeout: 3), "行数の集計が表示されること")
         XCTAssertTrue(app.staticTexts["既存コード"].exists, "既存コード件数が表示されること")
         attachScreenshot(of: app, name: "S3-列マッピング")
 

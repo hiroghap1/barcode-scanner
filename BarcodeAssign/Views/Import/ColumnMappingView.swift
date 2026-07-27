@@ -14,6 +14,7 @@ struct ColumnMappingView: View {
 
     var body: some View {
         Form {
+            nameSection
             parseOptionsSection
             mappingSection
             previewSection
@@ -26,6 +27,14 @@ struct ColumnMappingView: View {
                 Button("取込") { confirmImport() }
                     .disabled(!draft.hasData)
             }
+        }
+    }
+
+    // MARK: - プロジェクト名
+
+    private var nameSection: some View {
+        Section("プロジェクト名") {
+            TextField("未入力なら取込日時になります", text: $draft.projectName)
         }
     }
 

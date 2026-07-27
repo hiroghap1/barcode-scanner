@@ -23,6 +23,8 @@ final class ImportDraft {
     var displayIndex = 0
     var barcodeChoice: BarcodeColumnChoice = .existing(0)
     var newColumnName = ImportPlanner.defaultNewColumnName
+    /// プロジェクト名(未入力なら取込日時を使う)
+    var projectName = ""
 
     var hasData: Bool { !table.rows.isEmpty }
 
@@ -81,8 +83,9 @@ final class ImportDraft {
     @discardableResult
     func saveProject(in context: ModelContext) -> Project {
         let plan = plan
+        let trimmedName = projectName.trimmingCharacters(in: .whitespaces)
         let project = Project(
-            name: Self.defaultName(for: .now),
+            name: trimmedName.isEmpty ? Self.defaultName(for: .now) : trimmedName,
             columnNames: plan.columnNames,
             identifierColumnIndex: plan.mapping.identifierIndex,
             displayColumnIndex: plan.mapping.displayIndex,
