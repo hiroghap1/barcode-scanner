@@ -1,5 +1,6 @@
 import SwiftUI
 import VisionKit
+import BarcodeAssignCore
 
 /// P0 スキャン技術スパイク画面。
 ///
@@ -28,11 +29,9 @@ struct SpikeScanView: View {
     @State private var lastAccepted: SpikeScan?
     /// 読取範囲を中央帯に制限する(書籍の2段 JAN が交互に読まれる問題の対策検証)
     @State private var restrictToCenterBand = true
+    /// 受理判定(再アーム + グローバルクールダウン)。詳細は ScanArbiter を参照
+    @State private var arbiter = ScanArbiter()
 
-    /// 直前の受理から一定時間は「別のコードでも」無視する秒数。
-    /// 同一コードのみの抑止だと、書籍の2段 JAN(ISBN + 価格コード)が
-    /// 交互に受理され続けるため、グローバルに適用する(P3 も同方式にする)
-    private let cooldown: TimeInterval = 1.0
     /// 中央帯の高さ比率
     private let bandRatio: CGFloat = 0.35
 
@@ -77,6 +76,9 @@ struct SpikeScanView: View {
         }
         .navigationTitle("スキャンスパイク")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: engine) {
+            arbiter.reset()
+        }
     }
 
     @ViewBuilder
@@ -141,14 +143,13 @@ struct SpikeScanView: View {
         .padding()
     }
 
-    /// クールダウン付きで読取を受理し、音と振動を鳴らす(P3 の成功フローの先行検証)。
-    /// クールダウンはコードの異同を問わずグローバルに効かせる(2段バーコードの交互受理防止)
+    /// 検出を ScanArbiter で判定し、受理時のみ記録して音と振動を鳴らす
+    /// (P3 の成功フローの先行検証)。
+    /// - 視界に入り続けている同一コードは 1 回だけ受理(再登録は枠外に出してかざし直す)
+    /// - 受理直後 1 秒間は別のコードも受理しない(2段バーコードの交互受理防止)
     private func accept(payload: String, symbology: String) {
         let now = Date()
-        if let last = lastAccepted,
-           now.timeIntervalSince(last.date) < cooldown {
-            return
-        }
+        guard arbiter.register(payload: payload, at: now) else { return }
         let scan = SpikeScan(payload: payload, symbology: symbology, date: now)
         lastAccepted = scan
         scans.append(scan)

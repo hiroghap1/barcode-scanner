@@ -55,7 +55,20 @@ struct DataScannerRepresentable: UIViewControllerRepresentable {
             didAdd addedItems: [RecognizedItem],
             allItems: [RecognizedItem]
         ) {
-            for item in addedItems {
+            report(allItems)
+        }
+
+        /// 追跡中も「見えている」ことを通知し続ける(受理判定は ScanArbiter が行う)
+        func dataScanner(
+            _ dataScanner: DataScannerViewController,
+            didUpdate updatedItems: [RecognizedItem],
+            allItems: [RecognizedItem]
+        ) {
+            report(allItems)
+        }
+
+        private func report(_ items: [RecognizedItem]) {
+            for item in items {
                 if case .barcode(let barcode) = item, let payload = barcode.payloadStringValue {
                     onDetect(payload, barcode.observation.symbology.rawValue)
                 }
