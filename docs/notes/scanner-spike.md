@@ -52,3 +52,8 @@ A → B → A → B と交互にすべて受理されてしまう(本実装で�
 
 - 実機ビルドは Personal Team(CT7A5H25H6)の無料プロビジョニング。**7日で期限切れ**になるため、切れたら再インストールする
 - 実機インストール手順: `xcodebuild -allowProvisioningUpdates build` → `xcrun devicectl device install app` → 初回のみ iPhone 側で「VPNとデバイス管理」から開発者を信頼
+
+## 追記(P5)
+
+スパイク画面(SpikeScanView)は役目を終えたため P5 で削除した(コミット履歴には残る)。
+検証済みの方式(ガイド枠 + ScanArbiter)は Views/Scan/ の本実装に引き継がれている。

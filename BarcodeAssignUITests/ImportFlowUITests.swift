@@ -93,8 +93,8 @@ final class ImportFlowUITests: XCTestCase {
         attachScreenshot(of: app, name: "S2-CSVファイル")
     }
 
-    /// 1,000 行規模の取込とスクロール(P2 完了条件の性能確認)。
-    /// シミュレータの Files に large.csv(1000 行 × 3 列・カンマ区切り)を配置した場合のみ
+    /// 5,000 行規模の取込とスクロール(P5 の負荷確認。P2 の 1,000 行条件も包含)。
+    /// シミュレータの Files に large.csv(5000 行 × 3 列・カンマ区切り)を配置した場合のみ
     /// 実行される(見つからなければスキップ)。
     /// ペースト経由は iOS の許可アラート(UIPasteboard 同期読取のメインスレッドブロック)が
     /// 自動化を不安定にするため、CSV ファイル経由で行う。
@@ -114,20 +114,20 @@ final class ImportFlowUITests: XCTestCase {
         }
         fileCell.tap()
 
-        // SwiftUI の Text 補間は Int を桁区切り付きで表示する("1,000行")
+        // SwiftUI の Text 補間は Int を桁区切り付きで表示する("5,000行")
         XCTAssertTrue(
-            app.staticTexts["1,000行 × 3列を検出(区切り: カンマ)"].waitForExistence(timeout: 20),
-            "1,000 行の CSV を読み込めること"
+            app.staticTexts["5,000行 × 3列を検出(区切り: カンマ)"].waitForExistence(timeout: 30),
+            "5,000 行の CSV を読み込めること"
         )
 
         app.buttons["次へ"].tap()
         XCTAssertTrue(app.navigationBars["列の設定"].waitForExistence(timeout: 5))
         app.buttons["取込"].tap()
 
-        // 1,000 行の保存と一覧表示が完了すること
+        // 5,000 行の保存と一覧表示が完了すること
         XCTAssertTrue(
-            app.staticTexts["登録 0 ・ スキップ 0 ・ 残り 1,000"].waitForExistence(timeout: 30),
-            "1,000 行の取込が完了して一覧に集計が表示されること"
+            app.staticTexts["登録 0 ・ スキップ 0 ・ 残り 5,000"].waitForExistence(timeout: 60),
+            "5,000 行の取込が完了して一覧に集計が表示されること"
         )
 
         // スクロールが完走すること(致命的な性能問題がないことの確認)

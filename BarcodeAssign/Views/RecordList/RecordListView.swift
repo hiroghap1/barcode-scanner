@@ -194,6 +194,25 @@ struct RecordRowView: View {
     let project: Project
 
     var body: some View {
+        content
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(accessibilitySummary)
+    }
+
+    /// VoiceOver 用のまとめラベル(例: 「A002 Tシャツ黒 未登録」)
+    private var accessibilitySummary: String {
+        var parts = [
+            row.value(at: project.identifierColumnIndex),
+            row.value(at: project.displayColumnIndex),
+            row.status.label,
+        ]
+        if let barcode = row.barcode {
+            parts.append("コード \(barcode)")
+        }
+        return parts.filter { !$0.isEmpty }.joined(separator: " ")
+    }
+
+    private var content: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             statusIcon
                 .frame(width: 20)

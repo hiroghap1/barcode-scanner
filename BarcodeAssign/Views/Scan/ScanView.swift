@@ -328,10 +328,23 @@ struct ScanView: View {
         try? modelContext.save()
 
         ScanFeedback.playSuccess()
+        // VoiceOver 利用時はスキャン成功と登録先を読み上げる
+        UIAccessibility.post(
+            notification: .announcement,
+            argument: "登録しました。次は \(nextRowSummary)"
+        )
         isFlashingSuccess = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
             isFlashingSuccess = false
         }
+    }
+
+    /// 読み上げ用: 移動先の行の概要(完了時は完了の旨)
+    private var nextRowSummary: String {
+        guard let row = currentRow else { return "すべて完了しました" }
+        let identifier = row.value(at: project.identifierColumnIndex)
+        let display = row.value(at: project.displayColumnIndex)
+        return "\(identifier) \(display)"
     }
 
     private func skipCurrent() {

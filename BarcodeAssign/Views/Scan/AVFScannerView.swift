@@ -51,6 +51,17 @@ final class AVFScannerViewController: UIViewController, AVCaptureMetadataOutputO
         layer.videoGravity = .resizeAspectFill
         view.layer.addSublayer(layer)
         previewLayer = layer
+
+        // バックグラウンド復帰時にセッションを再開する(scenePhase 相当の監視)
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self, self.viewIfLoaded?.window != nil,
+                  AVCaptureDevice.authorizationStatus(for: .video) == .authorized else { return }
+            self.startSession()
+        }
     }
 
     override func viewDidLayoutSubviews() {

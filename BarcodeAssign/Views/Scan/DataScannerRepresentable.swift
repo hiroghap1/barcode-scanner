@@ -102,6 +102,16 @@ final class DataScannerContainerController: UIViewController {
         addChild(scanner)
         view.addSubview(scanner.view)
         scanner.didMove(toParent: self)
+
+        // バックグラウンド復帰時にスキャンを再開する(scenePhase 相当の監視)
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let scanner = self?.scanner, !scanner.isScanning else { return }
+            try? scanner.startScanning()
+        }
     }
 
     override func viewDidLayoutSubviews() {

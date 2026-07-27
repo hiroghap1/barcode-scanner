@@ -115,11 +115,6 @@ struct HomeView: View {
                     }
                 }
             }
-            Section("開発用(P5 で削除)") {
-                NavigationLink("バーコードスキャン スパイク") {
-                    SpikeScanView()
-                }
-            }
         }
     }
 }
@@ -147,6 +142,10 @@ struct ProjectCardView: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(
+            "\(project.name) 登録済み \(project.registeredCount) / \(project.totalCount) 件"
+        )
     }
 
     private var progress: Double {
