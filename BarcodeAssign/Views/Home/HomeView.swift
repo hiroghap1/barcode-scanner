@@ -24,6 +24,17 @@ struct HomeView: View {
             }
         }
         .navigationTitle("ピッと登録")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // ブランドロゴ(ライト/ダークで自動切替)。タイトル文字列は戻るボタン用に残す
+            ToolbarItem(placement: .principal) {
+                Image("LogoHeader")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 30)
+                    .accessibilityLabel("ピッと登録")
+            }
+        }
         .safeAreaInset(edge: .bottom) {
             Button {
                 isImportPresented = true
