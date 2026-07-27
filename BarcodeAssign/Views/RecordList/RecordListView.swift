@@ -10,6 +10,9 @@ struct RecordListView: View {
     @State private var filter: RowFilter = .all
     @State private var searchText = ""
     @State private var isScanPresented = false
+    @State private var isExportPresented = false
+    /// S5 完了画面の「出力へ」でスキャンを閉じた直後に出力シートを開くためのフラグ
+    @State private var pendingExportAfterScan = false
 
     /// 行の状態フィルタ
     enum RowFilter: String, CaseIterable, Identifiable {
@@ -61,6 +64,14 @@ struct RecordListView: View {
         }
         .navigationTitle(project.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("出力", systemImage: "square.and.arrow.up") {
+                    isExportPresented = true
+                }
+                .disabled(project.totalCount == 0)
+            }
+        }
         .searchable(text: $searchText, prompt: "識別・表示・コードで検索")
         .safeAreaInset(edge: .bottom) {
             Button {
@@ -75,8 +86,19 @@ struct RecordListView: View {
             .padding()
             .background(.bar)
         }
-        .fullScreenCover(isPresented: $isScanPresented) {
-            ScanView(project: project)
+        .fullScreenCover(
+            isPresented: $isScanPresented,
+            onDismiss: {
+                if pendingExportAfterScan {
+                    pendingExportAfterScan = false
+                    isExportPresented = true
+                }
+            }
+        ) {
+            ScanView(project: project, onExport: { pendingExportAfterScan = true })
+        }
+        .sheet(isPresented: $isExportPresented) {
+            ExportView(project: project)
         }
     }
 

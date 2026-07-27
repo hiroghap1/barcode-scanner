@@ -23,7 +23,7 @@ struct HomeView: View {
                 projectList
             }
         }
-        .navigationTitle("バーコード割当")
+        .navigationTitle("ピッと登録")
         .safeAreaInset(edge: .bottom) {
             Button {
                 isImportPresented = true

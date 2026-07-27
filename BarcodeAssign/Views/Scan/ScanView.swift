@@ -10,6 +10,8 @@ import BarcodeAssignCore
 /// 読取範囲は中央帯(ガイド枠)に制限する — 方式は docs/notes/scanner-spike.md 参照。
 struct ScanView: View {
     @Bindable var project: Project
+    /// 完了画面の「出力へ」で呼ばれる(呼び出し側でスキャンを閉じた後に出力シートを開く)
+    var onExport: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -264,10 +266,17 @@ struct ScanView: View {
             Label("すべて完了しました 🎉", systemImage: "checkmark.seal.fill")
                 .foregroundStyle(.green)
         } description: {
-            Text("登録 \(project.registeredCount) 件・スキップ \(project.skippedCount) 件。出力(S6)は P4 で実装予定です。")
+            Text("登録 \(project.registeredCount) 件・スキップ \(project.skippedCount) 件")
         } actions: {
-            Button("一覧へ戻る") { dismiss() }
+            if onExport != nil {
+                Button("出力へ") {
+                    onExport?()
+                    dismiss()
+                }
                 .buttonStyle(.borderedProminent)
+            }
+            Button("一覧へ戻る") { dismiss() }
+                .buttonStyle(.bordered)
         }
     }
 

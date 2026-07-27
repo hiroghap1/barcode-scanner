@@ -23,7 +23,7 @@ targets:
     info:
       path: BarcodeAssign/Info.plist
       properties:
-        CFBundleDisplayName: バーコード割当
+        CFBundleDisplayName: ピッと登録
         CFBundleDevelopmentRegion: ja
         NSCameraUsageDescription: 商品のバーコードを読み取るためにカメラを使用します。
         UILaunchScreen: {}

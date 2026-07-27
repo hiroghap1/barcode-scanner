@@ -203,6 +203,49 @@ final class ImportFlowUITests: XCTestCase {
         )
     }
 
+    /// 出力シート(S6)の表示とクリップボードコピー。
+    /// ファイル保存・共有はシステム UI のため手動確認(スプレッドシート貼り付けは P4 完了条件)。
+    @MainActor
+    func testExportSheetShowsPreviewAndCopies() throws {
+        let app = XCUIApplication()
+        app.launch()
+
+        // 既存コード 1 件を含む 2 行を取り込む
+        app.buttons["新しい取込"].tap()
+        let editor = app.textViews.firstMatch
+        XCTAssertTrue(editor.waitForExistence(timeout: 5))
+        editor.tap()
+        editor.typeText("sku,name,jan\nB001,mug,4909999999991\nB002,plate,\n")
+        app.buttons["次へ"].tap()
+        XCTAssertTrue(app.navigationBars["列の設定"].waitForExistence(timeout: 5))
+        app.buttons["取込"].tap()
+        XCTAssertTrue(app.staticTexts["登録 1 ・ スキップ 0 ・ 残り 1"].waitForExistence(timeout: 5))
+
+        // 出力シートを開く
+        app.buttons["出力"].tap()
+        XCTAssertTrue(app.navigationBars["出力"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["4909999999991"].exists, "既存コードがプレビューに合成されること")
+        XCTAssertTrue(
+            app.staticTexts["未登録 1 件・スキップ 0 件が残っています(出力は可能です)。"].exists,
+            "未登録残りの注意が表示されること"
+        )
+        attachScreenshot(of: app, name: "S6-出力")
+
+        // 書込列のみに切り替えてもプレビューが表示されること
+        // (列削減の正しさは ExportTableBuilderTests で担保。背後の S4 にも
+        //  商品名が表示されるため、ここでは他列の非表示は検証しない)
+        let barcodeOnlyToggle = app.switches["書込列のみ"].firstMatch
+        // Form の Toggle は要素が行全体を覆い中央タップでは切り替わらないため、
+        // スイッチ実体がある右端を座標でタップする
+        barcodeOnlyToggle.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+        XCTAssertEqual(barcodeOnlyToggle.value as? String, "1", "書込列のみが ON になること")
+        XCTAssertTrue(app.staticTexts["4909999999991"].waitForExistence(timeout: 3))
+
+        // コピー実行 → フィードバック表示
+        app.buttons["クリップボードにコピー"].tap()
+        XCTAssertTrue(app.buttons["コピーしました"].waitForExistence(timeout: 3), "コピー完了の表示が出ること")
+    }
+
     /// S5 の手動入力アラートにコードを入力して登録する
     @MainActor
     private func enterManualCode(_ app: XCUIApplication, code: String) {
