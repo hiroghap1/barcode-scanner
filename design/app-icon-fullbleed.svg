@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1024"
+  height="1024"
+  viewBox="0 0 1024 1024"
+  role="img"
+  aria-labelledby="title description"
+>
+  <title id="title">ピッと登録 アプリアイコン</title>
+  <desc id="description">
+    ブルーの角丸正方形を背景に、白いチェックマークと控えめなバーコード、スキャン枠を組み合わせたアイコン
+  </desc>
+
+  <defs>
+    <linearGradient id="background" x1="160" y1="96" x2="864" y2="928" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#53DFA0"/>
+      <stop offset="0.48" stop-color="#18B978"/>
+      <stop offset="1" stop-color="#087A55"/>
+    </linearGradient>
+
+    <radialGradient id="highlight" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(342 258) rotate(48) scale(690)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="0.58" stop-color="#FFFFFF" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="scanLine" x1="232" y1="0" x2="792" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A4FFDC" stop-opacity="0"/>
+      <stop offset="0.18" stop-color="#A4FFDC" stop-opacity="0.9"/>
+      <stop offset="0.5" stop-color="#E3FFF4"/>
+      <stop offset="0.82" stop-color="#A4FFDC" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#A4FFDC" stop-opacity="0"/>
+    </linearGradient>
+
+    <clipPath id="iconShape">
+      <rect x="0" y="0" width="1024" height="1024"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#iconShape)">
+    <rect x="0" y="0" width="1024" height="1024" fill="url(#background)"/>
+    <rect x="0" y="0" width="1024" height="1024" fill="url(#highlight)"/>
+
+    <!-- Subtle glass panel keeps the central mark crisp at small sizes. -->
+    <rect
+      x="166"
+      y="166"
+      width="692"
+      height="692"
+      rx="188"
+      fill="#FFFFFF"
+      fill-opacity="0.055"
+      stroke="#FFFFFF"
+      stroke-opacity="0.12"
+      stroke-width="3"
+    />
+
+    <!-- Quiet scan-frame corners. -->
+    <g
+      fill="none"
+      stroke="#FFFFFF"
+      stroke-opacity="0.30"
+      stroke-width="22"
+      stroke-linecap="round"
+    >
+      <path d="M244 384V286C244 263 263 244 286 244H384"/>
+      <path d="M640 244H738C761 244 780 263 780 286V384"/>
+      <path d="M780 640V738C780 761 761 780 738 780H640"/>
+      <path d="M384 780H286C263 780 244 761 244 738V640"/>
+    </g>
+
+    <!-- Barcode motif, intentionally low-contrast so the check remains dominant. -->
+    <g fill="#FFFFFF" fill-opacity="0.18">
+      <rect x="286" y="674" width="14" height="104" rx="7"/>
+      <rect x="312" y="674" width="28" height="104" rx="7"/>
+      <rect x="354" y="674" width="12" height="104" rx="6"/>
+      <rect x="378" y="674" width="20" height="104" rx="7"/>
+      <rect x="412" y="674" width="34" height="104" rx="7"/>
+      <rect x="460" y="674" width="13" height="104" rx="6.5"/>
+      <rect x="486" y="674" width="25" height="104" rx="7"/>
+      <rect x="524" y="674" width="12" height="104" rx="6"/>
+      <rect x="550" y="674" width="36" height="104" rx="7"/>
+      <rect x="600" y="674" width="18" height="104" rx="7"/>
+      <rect x="632" y="674" width="12" height="104" rx="6"/>
+      <rect x="658" y="674" width="30" height="104" rx="7"/>
+      <rect x="702" y="674" width="14" height="104" rx="7"/>
+    </g>
+
+    <!-- The scan-success line crosses the code without competing with the symbol. -->
+    <rect
+      x="232"
+      y="670"
+      width="560"
+      height="8"
+      rx="4"
+      fill="url(#scanLine)"
+      opacity="0.88"
+    />
+
+    <!-- Filter-free shadow for broad SVG viewer compatibility. -->
+    <path
+      d="M308 495L448 626L718 360"
+      fill="none"
+      stroke="#045239"
+      stroke-opacity="0.24"
+      stroke-width="88"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      transform="translate(0 22)"
+    />
+
+    <!-- Primary success mark, intentionally free of SVG filters. -->
+    <path
+      d="M308 495L448 626L718 360"
+      fill="none"
+      stroke="#FFFFFF"
+      stroke-width="88"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+
+    </g>
+</svg>

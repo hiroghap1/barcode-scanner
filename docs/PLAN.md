@@ -113,7 +113,7 @@ UI テスト(testScanFlowWithManualEntry)で自動化済み。カメラ読取は
 - [x] `Exporter` 実装（TableExporter は P0 で実装済み。ExportTableBuilder で書込列への `barcode` 合成・書込列のみを追加）
 - [x] `Exporter` 単体テスト（クォート・ヘッダー有無は TableExporterTests、合成・書込列のみは ExportTableBuilderTests）
 - [x] S6 出力シート（プレビュー、オプション、コピー / fileExporter / Share Sheet。S4 の出力ボタンと S5 完了画面の「出力へ」を結線）
-- [ ] 実機 → Google スプレッドシートへの貼り付け確認（列ズレがないこと）＝完了条件
+- [x] 実機 → Google スプレッドシートへの貼り付け確認(2026-07-27 ユーザー確認 OK。CSV 保存も問題なし)
 
 **完了条件**: コピーした結果をスプレッドシートに貼り付けて列が正しく揃う。CSV を Excel / Numbers で開ける（文字化けなし）。
 
@@ -129,7 +129,7 @@ UI テスト(testScanFlowWithManualEntry)で自動化済み。カメラ読取は
 - [ ] VoiceOver 対応（行のまとめラベル、スキャン成功の読み上げ通知）
 - [ ] ダークモード確認（全画面）
 - [ ] エッジケース: 空データ取込 / 1列だけの表 / 巨大データ（5,000行）/ 取込中の不正データ
-- [ ] アプリアイコンの設定(表示名は「ピッと登録」に決定・適用済み)
+- [x] アプリアイコンの設定(ユーザー提供の SVG を design/ に保存し、full-bleed 化して 1024px PNG を生成。AccentColor もアイコンの緑 #18B978(ダーク: #53DFA0)で統一)
 
 **完了条件**: 非機能要件チェックがすべて通る。
 
