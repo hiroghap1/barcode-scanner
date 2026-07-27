@@ -11,8 +11,11 @@ struct DataScannerRepresentable: UIViewControllerRepresentable {
     ]
 
     var onDetect: (_ payload: String, _ symbology: String) -> Void
+    /// 読取範囲を中央帯に制限する高さ比率(nil なら全面)。
+    /// 書籍の2段 JAN のように複数コードが同時に映る場合の誤読対策。
+    var regionHeightRatio: CGFloat?
 
-    func makeUIViewController(context: Context) -> DataScannerViewController {
+    func makeUIViewController(context: Context) -> DataScannerContainerController {
         let scanner = DataScannerViewController(
             recognizedDataTypes: [.barcode(symbologies: Self.symbologies)],
             qualityLevel: .balanced,
@@ -22,17 +25,18 @@ struct DataScannerRepresentable: UIViewControllerRepresentable {
             isHighlightingEnabled: true
         )
         scanner.delegate = context.coordinator
-        return scanner
+        return DataScannerContainerController(scanner: scanner)
     }
 
-    func updateUIViewController(_ scanner: DataScannerViewController, context: Context) {
+    func updateUIViewController(_ container: DataScannerContainerController, context: Context) {
         context.coordinator.onDetect = onDetect
-        guard !scanner.isScanning else { return }
-        try? scanner.startScanning()
+        container.regionHeightRatio = regionHeightRatio
+        guard !container.scanner.isScanning else { return }
+        try? container.scanner.startScanning()
     }
 
-    static func dismantleUIViewController(_ scanner: DataScannerViewController, coordinator: Coordinator) {
-        scanner.stopScanning()
+    static func dismantleUIViewController(_ container: DataScannerContainerController, coordinator: Coordinator) {
+        container.scanner.stopScanning()
     }
 
     func makeCoordinator() -> Coordinator {
@@ -56,6 +60,50 @@ struct DataScannerRepresentable: UIViewControllerRepresentable {
                     onDetect(payload, barcode.observation.symbology.rawValue)
                 }
             }
+        }
+    }
+}
+
+/// DataScannerViewController を子 VC として保持し、レイアウト確定後に
+/// regionOfInterest(ビュー座標系)を適用するためのコンテナ。
+final class DataScannerContainerController: UIViewController {
+    let scanner: DataScannerViewController
+
+    var regionHeightRatio: CGFloat? {
+        didSet {
+            guard regionHeightRatio != oldValue else { return }
+            view.setNeedsLayout()
+        }
+    }
+
+    init(scanner: DataScannerViewController) {
+        self.scanner = scanner
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        addChild(scanner)
+        view.addSubview(scanner.view)
+        scanner.didMove(toParent: self)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        scanner.view.frame = view.bounds
+        if let ratio = regionHeightRatio {
+            let height = view.bounds.height * ratio
+            scanner.regionOfInterest = CGRect(
+                x: 0,
+                y: (view.bounds.height - height) / 2,
+                width: view.bounds.width,
+                height: height
+            )
+        } else {
+            scanner.regionOfInterest = nil
         }
     }
 }

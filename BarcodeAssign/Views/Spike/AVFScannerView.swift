@@ -5,15 +5,20 @@ import AVFoundation
 /// EAN-13 の検出は UPC-A も包含する。
 struct AVFScannerRepresentable: UIViewControllerRepresentable {
     var onDetect: (_ payload: String, _ symbology: String) -> Void
+    /// 読取範囲を中央帯に制限する高さ比率(nil なら全面)。
+    /// 書籍の2段 JAN のように複数コードが同時に映る場合の誤読対策。
+    var regionHeightRatio: CGFloat?
 
     func makeUIViewController(context: Context) -> AVFScannerViewController {
         let controller = AVFScannerViewController()
         controller.onDetect = onDetect
+        controller.regionHeightRatio = regionHeightRatio
         return controller
     }
 
     func updateUIViewController(_ controller: AVFScannerViewController, context: Context) {
         controller.onDetect = onDetect
+        controller.regionHeightRatio = regionHeightRatio
     }
 }
 
@@ -25,9 +30,17 @@ final class AVFScannerViewController: UIViewController, AVCaptureMetadataOutputO
 
     var onDetect: ((_ payload: String, _ symbology: String) -> Void)?
 
+    var regionHeightRatio: CGFloat? {
+        didSet {
+            guard regionHeightRatio != oldValue else { return }
+            updateRectOfInterest()
+        }
+    }
+
     private let session = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "avf-scanner-session")
     private var previewLayer: AVCaptureVideoPreviewLayer?
+    private var metadataOutput: AVCaptureMetadataOutput?
     private var isConfigured = false
 
     override func viewDidLoad() {
@@ -43,6 +56,7 @@ final class AVFScannerViewController: UIViewController, AVCaptureMetadataOutputO
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         previewLayer?.frame = view.bounds
+        updateRectOfInterest()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -76,7 +90,31 @@ final class AVFScannerViewController: UIViewController, AVCaptureMetadataOutputO
             if !self.session.isRunning {
                 self.session.startRunning()
             }
+            // rectOfInterest の座標変換はセッション稼働後でないと正しく計算できない
+            DispatchQueue.main.async {
+                self.updateRectOfInterest()
+            }
         }
+    }
+
+    /// 読取範囲を中央帯へ制限する(nil なら全面)。
+    /// rectOfInterest はメタデータ出力座標系のため、プレビュー層の変換 API を経由する。
+    private func updateRectOfInterest() {
+        guard let output = metadataOutput, let layer = previewLayer, session.isRunning else { return }
+        guard let ratio = regionHeightRatio else {
+            output.rectOfInterest = CGRect(x: 0, y: 0, width: 1, height: 1)
+            return
+        }
+        let bounds = layer.bounds
+        guard bounds.height > 0 else { return }
+        let bandHeight = bounds.height * ratio
+        let bandRect = CGRect(
+            x: 0,
+            y: (bounds.height - bandHeight) / 2,
+            width: bounds.width,
+            height: bandHeight
+        )
+        output.rectOfInterest = layer.metadataOutputRectConverted(fromLayerRect: bandRect)
     }
 
     private func configureIfNeeded() {
@@ -98,6 +136,7 @@ final class AVFScannerViewController: UIViewController, AVCaptureMetadataOutputO
         output.metadataObjectTypes = Self.metadataTypes.filter {
             output.availableMetadataObjectTypes.contains($0)
         }
+        metadataOutput = output
         isConfigured = true
     }
 

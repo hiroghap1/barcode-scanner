@@ -26,9 +26,15 @@ struct SpikeScanView: View {
     @State private var engine: Engine = DataScannerViewController.isSupported ? .visionKit : .avFoundation
     @State private var scans: [SpikeScan] = []
     @State private var lastAccepted: SpikeScan?
+    /// 読取範囲を中央帯に制限する(書籍の2段 JAN が交互に読まれる問題の対策検証)
+    @State private var restrictToCenterBand = true
 
-    /// 同一コードの連続検出を無視する秒数(P3 と同じ値で検証する)
+    /// 直前の受理から一定時間は「別のコードでも」無視する秒数。
+    /// 同一コードのみの抑止だと、書籍の2段 JAN(ISBN + 価格コード)が
+    /// 交互に受理され続けるため、グローバルに適用する(P3 も同方式にする)
     private let cooldown: TimeInterval = 1.0
+    /// 中央帯の高さ比率
+    private let bandRatio: CGFloat = 0.35
 
     var body: some View {
         VStack(spacing: 0) {
@@ -40,10 +46,20 @@ struct SpikeScanView: View {
             .pickerStyle(.segmented)
             .padding()
 
+            Toggle("読取範囲を中央に制限(2段バーコード対策)", isOn: $restrictToCenterBand)
+                .font(.footnote)
+                .padding(.horizontal)
+                .padding(.bottom, 8)
+
             scannerView
                 .frame(maxWidth: .infinity)
                 .frame(height: 320)
                 .background(Color.black)
+                .overlay {
+                    if restrictToCenterBand {
+                        guideBandOverlay
+                    }
+                }
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.horizontal)
 
@@ -65,12 +81,16 @@ struct SpikeScanView: View {
 
     @ViewBuilder
     private var scannerView: some View {
+        let ratio: CGFloat? = restrictToCenterBand ? bandRatio : nil
         switch engine {
         case .visionKit:
             if DataScannerViewController.isSupported {
-                DataScannerRepresentable { payload, symbology in
-                    accept(payload: payload, symbology: symbology)
-                }
+                DataScannerRepresentable(
+                    onDetect: { payload, symbology in
+                        accept(payload: payload, symbology: symbology)
+                    },
+                    regionHeightRatio: ratio
+                )
             } else {
                 ContentUnavailableView(
                     "VisionKit 非対応端末",
@@ -80,10 +100,31 @@ struct SpikeScanView: View {
                 .foregroundStyle(.white)
             }
         case .avFoundation:
-            AVFScannerRepresentable { payload, symbology in
-                accept(payload: payload, symbology: symbology)
+            AVFScannerRepresentable(
+                onDetect: { payload, symbology in
+                    accept(payload: payload, symbology: symbology)
+                },
+                regionHeightRatio: ratio
+            )
+        }
+    }
+
+    /// 読取帯の外側を暗くし、帯の境界を線で示すガイド
+    private var guideBandOverlay: some View {
+        GeometryReader { geometry in
+            let bandHeight = geometry.size.height * bandRatio
+            let inset = (geometry.size.height - bandHeight) / 2
+            VStack(spacing: 0) {
+                Color.black.opacity(0.45)
+                    .frame(height: inset)
+                Rectangle()
+                    .strokeBorder(.yellow, lineWidth: 2)
+                    .frame(height: bandHeight)
+                Color.black.opacity(0.45)
+                    .frame(height: inset)
             }
         }
+        .allowsHitTesting(false)
     }
 
     private var resultPanel: some View {
@@ -100,11 +141,11 @@ struct SpikeScanView: View {
         .padding()
     }
 
-    /// クールダウン付きで読取を受理し、音と振動を鳴らす(P3 の成功フローの先行検証)
+    /// クールダウン付きで読取を受理し、音と振動を鳴らす(P3 の成功フローの先行検証)。
+    /// クールダウンはコードの異同を問わずグローバルに効かせる(2段バーコードの交互受理防止)
     private func accept(payload: String, symbology: String) {
         let now = Date()
         if let last = lastAccepted,
-           last.payload == payload,
            now.timeIntervalSince(last.date) < cooldown {
             return
         }
