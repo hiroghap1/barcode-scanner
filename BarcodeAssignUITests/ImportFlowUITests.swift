@@ -267,6 +267,50 @@ final class ImportFlowUITests: XCTestCase {
         app.buttons["登録"].tap()
     }
 
+    /// App Store 提出用スクリーンショットの一括撮影。
+    /// `TEST_RUNNER_CAPTURE_SCREENSHOTS=1` を付けて実行したときのみ動く(通常はスキップ)。
+    /// 事前にシミュレータの Files へ demo.csv(12行・うち7行にJANあり)を配置しておくこと。
+    @MainActor
+    func testCaptureAppStoreScreenshots() throws {
+        guard ProcessInfo.processInfo.environment["CAPTURE_SCREENSHOTS"] == "1" else {
+            throw XCTSkip("スクリーンショット撮影モードではないためスキップ")
+        }
+        let app = makeApp()
+        app.launch()
+
+        app.buttons["新しい取込"].tap()
+        app.buttons["CSV ファイル"].tap()
+        let chooseButton = app.buttons["ファイルを選択"]
+        XCTAssertTrue(chooseButton.waitForExistence(timeout: 5))
+        chooseButton.tap()
+        guard let fileCell = locateFileCell(in: app, prefix: "demo") else {
+            throw XCTSkip("Files に demo.csv が無いためスキップ")
+        }
+        fileCell.tap()
+        XCTAssertTrue(
+            app.staticTexts["12行 × 3列を検出(区切り: カンマ)"].waitForExistence(timeout: 10)
+        )
+        attachScreenshot(of: app, name: "store-2-取込")
+
+        app.buttons["次へ"].tap()
+        XCTAssertTrue(app.navigationBars["列の設定"].waitForExistence(timeout: 5))
+        attachScreenshot(of: app, name: "store-3-列設定")
+
+        app.buttons["取込"].tap()
+        XCTAssertTrue(app.staticTexts["登録 7 ・ スキップ 0 ・ 残り 5"].waitForExistence(timeout: 10))
+        attachScreenshot(of: app, name: "store-4-一覧")
+
+        app.buttons["出力"].tap()
+        XCTAssertTrue(app.navigationBars["出力"].waitForExistence(timeout: 5))
+        attachScreenshot(of: app, name: "store-5-出力")
+        app.buttons["閉じる"].tap()
+
+        // ホームへ戻ってプロジェクトカードを撮影
+        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["登録済み 7 / 12 件"].waitForExistence(timeout: 5))
+        attachScreenshot(of: app, name: "store-1-ホーム")
+    }
+
     /// Files ピッカーで指定名のファイルセルを探す。
     /// 最近使った項目に出なければ「ブラウズ > このiPhone内」を辿る
     /// (ファイルはセル単位でタップする。ラベルは「sample, csv, …」形式)。
