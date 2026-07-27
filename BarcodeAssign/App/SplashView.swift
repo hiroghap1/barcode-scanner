@@ -1,27 +1,31 @@
 import SwiftUI
 
 /// 起動時のスプラッシュ。
-/// 「ピ」だけが中央にポップ表示 → 左右にピッと揺れる →
-/// 残り(アイコン・ッと登録・下線)がフェードインしながら「ピ」が定位置へスライドする。
+/// 「ピ」(三本線なし)が中央に現れ、下端を支点に ±30° 揺れる →
+/// 三本線がパッと出現(「ピッ!」の瞬間)→ 残りがフェードインしながら定位置へ合体する。
 /// レイヤーはロゴ SVG から同一キャンバスで書き出しているため、重ねると完全に一致する。
-/// 「視差効果を減らす」設定時はロゴ全体のフェードのみにする。
+/// 「視差効果を減らす」設定時は動きなしの順次フェードにする。
 struct SplashView: View {
     /// アニメーション完了時に呼ばれる(呼び出し側でスプラッシュを閉じる)
     let onFinished: () -> Void
 
     @State private var isPiVisible = false
+    @State private var isSparkVisible = false
     @State private var isRestVisible = false
-    /// 「ピ」の揺れ(左右のオフセット)
-    @State private var shakeOffset: CGFloat = 0
+    /// 「ピ」の振り角(下端支点)
+    @State private var swingAngle: Double = 0
     /// 構図全体のオフセット。開始時は「ピ」が画面中央に来るよう右へずらしておく
     @State private var compositionOffset: CGFloat = Self.piCenteringOffset
 
     private let reduceMotion = UIAccessibility.isReduceMotionEnabled
 
     private static let logoWidth: CGFloat = 280
-    /// 「ピ」レイヤーの内容中心はキャンバス幅の約41%位置にあるため、
-    /// 画面中央に見せるには (0.5 - 0.41) × 表示幅 ぶん右へずらす
-    private static let piCenteringOffset: CGFloat = logoWidth * (0.5 - 0.41)
+    /// 「ピ」単体レイヤーの内容中心はキャンバス幅の 39.2% 位置
+    private static let piCenteringOffset: CGFloat = logoWidth * (0.5 - 0.3923)
+    /// 「ピ」の下端(揺れの支点。キャンバス比)
+    private static let piPivot = UnitPoint(x: 0.3923, y: 0.802)
+    /// 三本線の付け根(出現時のスケール基準。キャンバス比)
+    private static let sparkAnchor = UnitPoint(x: 0.4432, y: 0.1835)
 
     var body: some View {
         ZStack {
@@ -32,11 +36,16 @@ struct SplashView: View {
                     .resizable()
                     .scaledToFit()
                     .opacity(isRestVisible ? 1 : 0)
-                Image("SplashPi")
+                Image("SplashSpark")
+                    .resizable()
+                    .scaledToFit()
+                    .opacity(isSparkVisible ? 1 : 0)
+                    .scaleEffect(isSparkVisible ? 1.0 : 0.4, anchor: Self.sparkAnchor)
+                Image("SplashPiSolo")
                     .resizable()
                     .scaledToFit()
                     .opacity(isPiVisible ? 1 : 0)
-                    .offset(x: shakeOffset)
+                    .rotationEffect(.degrees(swingAngle), anchor: Self.piPivot)
             }
             .frame(width: Self.logoWidth)
             .scaleEffect(isPiVisible ? 1.0 : 0.85)
@@ -50,36 +59,51 @@ struct SplashView: View {
 
     private func run() {
         guard !reduceMotion else {
-            // 動きなしでも「ピ → 残り」の二段階は伝える(順次フェード)
+            // 動きなしでも出現順(ピ → 三本線 → 残り)は伝える
             compositionOffset = 0
-            withAnimation(.easeOut(duration: 0.45)) { isPiVisible = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            withAnimation(.easeOut(duration: 0.4)) { isPiVisible = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+                withAnimation(.easeOut(duration: 0.3)) { isSparkVisible = true }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
                 withAnimation(.easeOut(duration: 0.5)) { isRestVisible = true }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.6, execute: onFinished)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.8, execute: onFinished)
             return
         }
-        // 1. 「ピ」が画面中央にポップ表示
+
+        // 1. 「ピ」(三本線なし)が画面中央にポップ表示
         withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
             isPiVisible = true
         }
-        // 2. 左右にピッと揺れる
-        let shakeSteps: [(delay: TimeInterval, offset: CGFloat)] = [
-            (0.55, -12), (0.67, 12), (0.79, 0),
+        // 2. 下端を支点に +30° ⇔ -30° と揺れて減衰
+        let swings: [(delay: TimeInterval, angle: Double, duration: TimeInterval)] = [
+            (0.50, 30, 0.20),
+            (0.70, -30, 0.30),
+            (1.00, 15, 0.24),
+            (1.24, 0, 0.20),
         ]
-        for step in shakeSteps {
-            DispatchQueue.main.asyncAfter(deadline: .now() + step.delay) {
-                withAnimation(.easeInOut(duration: 0.12)) { shakeOffset = step.offset }
+        for swing in swings {
+            DispatchQueue.main.asyncAfter(deadline: .now() + swing.delay) {
+                withAnimation(.easeInOut(duration: swing.duration)) {
+                    swingAngle = swing.angle
+                }
             }
         }
-        // 3. 残りがフェードインし、「ピ」は定位置へスライド
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        // 3. 三本線がパッと出現(「ピッ!」の瞬間)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+                isSparkVisible = true
+            }
+        }
+        // 4. 残りがフェードインし、「ピ」は定位置へスライド
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.9) {
             withAnimation(.easeOut(duration: 0.5)) {
                 isRestVisible = true
                 compositionOffset = 0
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: onFinished)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.85, execute: onFinished)
     }
 }
 
