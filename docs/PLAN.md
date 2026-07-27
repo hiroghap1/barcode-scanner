@@ -51,12 +51,14 @@ docs/PRD.md・docs/DESIGN.md に基づく MVP 開発の進行計画。
 **目的**: 表データをアプリに取り込めるようにする。シミュレータのみで完結。
 
 作業:
-- [ ] SwiftData モデル実装（`Project`, `Row`, `RowStatus`）
-- [ ] `TableParser` 実装（RFC 4180、区切り文字自動判定、UTF-8/Shift_JIS）
-- [ ] `TableParser` 単体テスト（クォート・改行入りセル、空行、列数不揃い、BOM）
-- [ ] S2 データ取込画面（ペースト / fileImporter）
-- [ ] S3 プレビュー & 列マッピング画面（自動推定、新規列追加、バリデーション）
-- [ ] 取込確定 → `Project` 保存(既存コードがある行は「登録済み」化)
+- [x] SwiftData モデル実装（`Project`, `Row`, `RowStatus`）
+- [x] `TableParser` 実装（RFC 4180、区切り文字自動判定、UTF-8/Shift_JIS）
+- [x] `TableParser` 単体テスト（クォート・改行入りセル、空行、列数不揃い、BOM）
+- [x] S2 データ取込画面（ペースト / fileImporter）
+- [x] S3 プレビュー & 列マッピング画面（自動推定、新規列追加、バリデーション）
+- [x] 取込確定 → `Project` 保存(既存コードがある行は「登録済み」化。`ImportPlanner` として Core に実装)
+
+検証: 取込フローの E2E は `BarcodeAssignUITests`(ペースト取込 + CSV ファイル取込)で自動化済み。
 
 **完了条件**: スプレッドシートからコピーした表と CSV ファイルの両方を取り込み、列マッピングして保存できる。パーサのテストが全て通る。
 

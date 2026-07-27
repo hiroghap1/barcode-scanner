@@ -37,3 +37,21 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         MARKETING_VERSION: 0.1.0
         CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: CT7A5H25H6
+    scheme:
+      testTargets:
+        - BarcodeAssignUITests
+
+  BarcodeAssignUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - BarcodeAssignUITests
+    dependencies:
+      - target: BarcodeAssign
+    settings:
+      base:
+        SWIFT_VERSION: "5.9"
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: CT7A5H25H6

@@ -17,6 +17,10 @@ cd BarcodeAssignCore && swift test
 
 # Xcode プロジェクト再生成(project.yml 変更後に必須)
 xcodegen generate
+
+# UI テスト(シミュレータ。CSV ファイル取込テストは Files に sample.csv が無ければ自動スキップ)
+xcodebuild test -project BarcodeAssign.xcodeproj -scheme BarcodeAssign \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -only-testing:BarcodeAssignUITests
 ```
 
 ## 構成上のルール
