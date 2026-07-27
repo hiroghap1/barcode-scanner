@@ -9,9 +9,17 @@ final class ImportFlowUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    /// スプラッシュを省略した状態でアプリを用意する(タップの妨げ防止)
+    @MainActor
+    private func makeApp() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["-disableSplash"]
+        return app
+    }
+
     @MainActor
     func testPasteImportFlowSavesProject() throws {
-        let app = XCUIApplication()
+        let app = makeApp()
         app.launch()
 
         app.buttons["新しい取込"].tap()
@@ -70,7 +78,7 @@ final class ImportFlowUITests: XCTestCase {
     /// インデックスされないため、Files アプリへのドラッグ&ドロップで配置すること。
     @MainActor
     func testCSVFileImportDetectsTable() throws {
-        let app = XCUIApplication()
+        let app = makeApp()
         app.launch()
 
         app.buttons["新しい取込"].tap()
@@ -100,7 +108,7 @@ final class ImportFlowUITests: XCTestCase {
     /// 自動化を不安定にするため、CSV ファイル経由で行う。
     @MainActor
     func testLargeCSVImportAndScroll() throws {
-        let app = XCUIApplication()
+        let app = makeApp()
         app.launch()
 
         app.buttons["新しい取込"].tap()
@@ -142,7 +150,7 @@ final class ImportFlowUITests: XCTestCase {
     /// 手動入力(⌨)で「登録 → 自動送り → 重複警告 → スキップ → 完了」を検証する。
     @MainActor
     func testScanFlowWithManualEntry() throws {
-        let app = XCUIApplication()
+        let app = makeApp()
         app.launch()
 
         // 3 行(すべて未登録)のプロジェクトを作る
@@ -207,7 +215,7 @@ final class ImportFlowUITests: XCTestCase {
     /// ファイル保存・共有はシステム UI のため手動確認(スプレッドシート貼り付けは P4 完了条件)。
     @MainActor
     func testExportSheetShowsPreviewAndCopies() throws {
-        let app = XCUIApplication()
+        let app = makeApp()
         app.launch()
 
         // 既存コード 1 件を含む 2 行を取り込む

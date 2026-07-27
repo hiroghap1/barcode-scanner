@@ -2,15 +2,29 @@ import SwiftUI
 import SwiftData
 
 /// ルート画面。ホーム(S1)を起点に、プロジェクト選択・取込完了でレコード一覧(S4)へ遷移する。
+/// 起動時は短いスプラッシュアニメーションを挟む。
 struct RootView: View {
     @State private var path = NavigationPath()
+    /// UI テストは "-disableSplash" でスプラッシュを省略する(タップの妨げになるため)
+    @State private var isSplashVisible = !ProcessInfo.processInfo.arguments.contains("-disableSplash")
 
     var body: some View {
-        NavigationStack(path: $path) {
-            HomeView(path: $path)
-                .navigationDestination(for: Project.self) { project in
-                    RecordListView(project: project)
+        ZStack {
+            NavigationStack(path: $path) {
+                HomeView(path: $path)
+                    .navigationDestination(for: Project.self) { project in
+                        RecordListView(project: project)
+                    }
+            }
+            if isSplashVisible {
+                SplashView {
+                    withAnimation(.easeOut(duration: 0.35)) {
+                        isSplashVisible = false
+                    }
                 }
+                .transition(.opacity)
+                .zIndex(1)
+            }
         }
     }
 }
