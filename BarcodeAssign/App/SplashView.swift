@@ -61,27 +61,27 @@ struct SplashView: View {
         guard !reduceMotion else {
             // 動きなしでも出現順(ピ → 三本線 → 残り)は伝える
             compositionOffset = 0
-            withAnimation(.easeOut(duration: 0.4)) { isPiVisible = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
-                withAnimation(.easeOut(duration: 0.3)) { isSparkVisible = true }
+            withAnimation(.easeOut(duration: 0.3)) { isPiVisible = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                withAnimation(.easeOut(duration: 0.2)) { isSparkVisible = true }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
-                withAnimation(.easeOut(duration: 0.5)) { isRestVisible = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.65) {
+                withAnimation(.easeOut(duration: 0.35)) { isRestVisible = true }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.8, execute: onFinished)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.3, execute: onFinished)
             return
         }
 
         // 1. 「ピ」(三本線なし)が画面中央にポップ表示
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             isPiVisible = true
         }
-        // 2. 下端を支点に +30° ⇔ -30° と揺れて減衰
+        // 2. 下端を支点にピコピコッと小さく揺れる(±10° で減衰)
         let swings: [(delay: TimeInterval, angle: Double, duration: TimeInterval)] = [
-            (0.50, 30, 0.20),
-            (0.70, -30, 0.30),
-            (1.00, 15, 0.24),
-            (1.24, 0, 0.20),
+            (0.35, 10, 0.10),
+            (0.45, -10, 0.12),
+            (0.57, 5, 0.10),
+            (0.67, 0, 0.08),
         ]
         for swing in swings {
             DispatchQueue.main.asyncAfter(deadline: .now() + swing.delay) {
@@ -91,19 +91,19 @@ struct SplashView: View {
             }
         }
         // 3. 三本線がパッと出現(「ピッ!」の瞬間)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.78) {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
                 isSparkVisible = true
             }
         }
         // 4. 残りがフェードインし、「ピ」は定位置へスライド
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.9) {
-            withAnimation(.easeOut(duration: 0.5)) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.98) {
+            withAnimation(.easeOut(duration: 0.35)) {
                 isRestVisible = true
                 compositionOffset = 0
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.85, execute: onFinished)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6, execute: onFinished)
     }
 }
 
