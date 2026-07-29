@@ -66,13 +66,26 @@ struct RecordListView: View {
         }
         .navigationTitle(project.name)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarTitleMenu {
-            Button("名前を変更", systemImage: "pencil") {
-                renameText = project.name
-                isRenamePresented = true
-            }
-        }
         .toolbar {
+            // タイトル+鉛筆アイコン。タップで名前変更ダイアログを直接開く
+            ToolbarItem(placement: .principal) {
+                Button {
+                    renameText = project.name
+                    isRenamePresented = true
+                } label: {
+                    HStack(spacing: 5) {
+                        Text(project.name)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        Image(systemName: "pencil")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("プロジェクト名を変更")
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("出力", systemImage: "square.and.arrow.up") {
                     isExportPresented = true

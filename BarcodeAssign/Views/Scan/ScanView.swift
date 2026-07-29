@@ -275,7 +275,7 @@ struct ScanView: View {
 
     private var controlBar: some View {
         HStack(spacing: 8) {
-            controlButton("前へ", systemImage: "chevron.backward", identifier: "scan.previous") {
+            controlButton("戻る", systemImage: "chevron.backward", identifier: "scan.previous") {
                 moveToPrevious()
             }
             controlButton("スキップ", systemImage: "forward.end", identifier: "scan.skip") {
