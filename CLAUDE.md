@@ -35,3 +35,4 @@ xcodebuild test -project BarcodeAssign.xcodeproj -scheme BarcodeAssign \
 - Swift の `String` では CRLF(`\r\n`)が 1 つの `Character` になる。改行判定は `"\r\n"` も明示するか `isNewline` を使う(TableParser で対応済み)
 - UPC-A は VisionKit / AVFoundation とも **EAN-13(先頭 0 付き)として検出される**。独立したシンボロジー指定はない
 - VisionKit `DataScannerViewController` は A12 以降 + 実機のみ。シミュレータではスキャン検証不可
+- VisionKit 実行中に外から `AVCaptureDevice` のトーチを操作するとプレビューが固まる(実機で確認)。ライト点灯中は自前セッションの AVFoundation スキャナへ切り替える方式で対応済み(ScanView.scannerView)

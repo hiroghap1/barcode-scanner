@@ -8,17 +8,23 @@ struct AVFScannerRepresentable: UIViewControllerRepresentable {
     /// 読取範囲を中央帯に制限する高さ比率(nil なら全面)。
     /// 書籍の2段 JAN のように複数コードが同時に映る場合の誤読対策。
     var regionHeightRatio: CGFloat?
+    /// ライト(トーチ)を点けるか。
+    /// VisionKit はセッション外からのトーチ操作でプレビューが固まるため、
+    /// ライト使用時は自前セッションのこのスキャナを使う。
+    var isTorchOn: Bool = false
 
     func makeUIViewController(context: Context) -> AVFScannerViewController {
         let controller = AVFScannerViewController()
         controller.onDetect = onDetect
         controller.regionHeightRatio = regionHeightRatio
+        controller.isTorchOn = isTorchOn
         return controller
     }
 
     func updateUIViewController(_ controller: AVFScannerViewController, context: Context) {
         controller.onDetect = onDetect
         controller.regionHeightRatio = regionHeightRatio
+        controller.isTorchOn = isTorchOn
     }
 }
 
@@ -37,10 +43,18 @@ final class AVFScannerViewController: UIViewController, AVCaptureMetadataOutputO
         }
     }
 
+    var isTorchOn = false {
+        didSet {
+            guard isTorchOn != oldValue else { return }
+            applyTorch()
+        }
+    }
+
     private let session = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "avf-scanner-session")
     private var previewLayer: AVCaptureVideoPreviewLayer?
     private var metadataOutput: AVCaptureMetadataOutput?
+    private var captureDevice: AVCaptureDevice?
     private var isConfigured = false
 
     override func viewDidLoad() {
@@ -101,10 +115,30 @@ final class AVFScannerViewController: UIViewController, AVCaptureMetadataOutputO
             if !self.session.isRunning {
                 self.session.startRunning()
             }
+            // トーチはセッション稼働後に適用する(停止中は点灯できない)
+            self.applyTorchOnSessionQueue()
             // rectOfInterest の座標変換はセッション稼働後でないと正しく計算できない
             DispatchQueue.main.async {
                 self.updateRectOfInterest()
             }
+        }
+    }
+
+    /// セッションが使っているデバイス自身のトーチを操作する(競合しない)
+    private func applyTorch() {
+        sessionQueue.async { [weak self] in
+            self?.applyTorchOnSessionQueue()
+        }
+    }
+
+    private func applyTorchOnSessionQueue() {
+        guard let device = captureDevice, device.hasTorch, session.isRunning else { return }
+        do {
+            try device.lockForConfiguration()
+            device.torchMode = isTorchOn ? .on : .off
+            device.unlockForConfiguration()
+        } catch {
+            // 点灯失敗は無視(読み取り自体は継続できる)
         }
     }
 
@@ -139,6 +173,7 @@ final class AVFScannerViewController: UIViewController, AVCaptureMetadataOutputO
             session.canAddInput(input)
         else { return }
         session.addInput(input)
+        captureDevice = device
 
         let output = AVCaptureMetadataOutput()
         guard session.canAddOutput(output) else { return }

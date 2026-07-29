@@ -83,7 +83,6 @@ struct ScanView: View {
                             systemImage: isTorchOn ? "flashlight.on.fill" : "flashlight.off.fill"
                         ) {
                             isTorchOn.toggle()
-                            setTorch(isTorchOn)
                         }
                         .tint(isTorchOn ? .yellow : nil)
                     }
@@ -98,7 +97,8 @@ struct ScanView: View {
             requestCameraIfNeeded()
         }
         .onDisappear {
-            if isTorchOn { setTorch(false) }
+            // AVF スキャナはビューの破棄でセッションが止まり、トーチも消灯する
+            isTorchOn = false
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
             // バックグラウンドで OS がトーチを消すため、表示状態を合わせる
@@ -195,7 +195,9 @@ struct ScanView: View {
 
     @ViewBuilder
     private var scannerView: some View {
-        if DataScannerViewController.isSupported {
+        // VisionKit はセッション外からのトーチ操作でプレビューが固まるため、
+        // ライト点灯中は自前セッションの AVFoundation スキャナへ切り替える
+        if DataScannerViewController.isSupported && !isTorchOn {
             DataScannerRepresentable(
                 onDetect: { payload, _ in handleDetection(of: payload) },
                 regionHeightRatio: bandRatio
@@ -203,7 +205,8 @@ struct ScanView: View {
         } else {
             AVFScannerRepresentable(
                 onDetect: { payload, _ in handleDetection(of: payload) },
-                regionHeightRatio: bandRatio
+                regionHeightRatio: bandRatio,
+                isTorchOn: isTorchOn
             )
         }
     }
@@ -231,17 +234,6 @@ struct ScanView: View {
 
     private var hasTorch: Bool {
         AVCaptureDevice.default(for: .video)?.hasTorch ?? false
-    }
-
-    private func setTorch(_ on: Bool) {
-        guard let device = AVCaptureDevice.default(for: .video), device.hasTorch else { return }
-        do {
-            try device.lockForConfiguration()
-            device.torchMode = on ? .on : .off
-            device.unlockForConfiguration()
-        } catch {
-            isTorchOn = false
-        }
     }
 
     private func requestCameraIfNeeded() {
