@@ -26,6 +26,8 @@ struct ScanView: View {
     @State private var isFlashingSuccess = false
     /// 行送りアニメーションの方向(進む: 下から / 戻る: 上から)
     @State private var advanceEdge: Edge = .bottom
+    /// ライト(トーチ)の点灯状態
+    @State private var isTorchOn = false
 
     /// 中央帯の高さ比率(スパイクで検証済みの値)
     private let bandRatio: CGFloat = 0.35
@@ -74,10 +76,34 @@ struct ScanView: View {
                     ProgressView(value: progress)
                         .frame(width: 140)
                 }
+                if hasTorch {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(
+                            isTorchOn ? "ライトを消す" : "ライトを点ける",
+                            systemImage: isTorchOn ? "flashlight.on.fill" : "flashlight.off.fill"
+                        ) {
+                            isTorchOn.toggle()
+                            setTorch(isTorchOn)
+                        }
+                        .tint(isTorchOn ? .yellow : nil)
+                    }
+                }
             }
         }
         .interactiveDismissDisabled()
-        .onAppear(perform: requestCameraIfNeeded)
+        .onAppear {
+            // 設定の読み取り間隔を反映した判定器で開始する
+            let interval = AppSettings.cooldown
+            arbiter = ScanArbiter(cooldown: interval, rearmInterval: interval)
+            requestCameraIfNeeded()
+        }
+        .onDisappear {
+            if isTorchOn { setTorch(false) }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            // バックグラウンドで OS がトーチを消すため、表示状態を合わせる
+            isTorchOn = false
+        }
         .alert(
             confirmationTitle,
             isPresented: Binding(
@@ -198,6 +224,23 @@ struct ScanView: View {
             .fontWeight(.bold)
             .buttonStyle(.borderedProminent)
             .tint(Color("BrandGreen"))
+        }
+    }
+
+    // MARK: - ライト(トーチ)
+
+    private var hasTorch: Bool {
+        AVCaptureDevice.default(for: .video)?.hasTorch ?? false
+    }
+
+    private func setTorch(_ on: Bool) {
+        guard let device = AVCaptureDevice.default(for: .video), device.hasTorch else { return }
+        do {
+            try device.lockForConfiguration()
+            device.torchMode = on ? .on : .off
+            device.unlockForConfiguration()
+        } catch {
+            isTorchOn = false
         }
     }
 

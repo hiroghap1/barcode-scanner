@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ピッと登録 - バーコードで表にコードを割り当てる iOS アプリ</title>
+<meta name="description" content="商品リスト(CSV・表データ)にバーコードをスキャンで次々に割り当てる iOS アプリ。データはすべて端末内、オフラインで完結。">
+<style>
+  :root { --green: #087a55; --green-light: #18b978; --mint: #eafff5; --ink: #183b32; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; color: var(--ink); line-height: 1.8; }
+  .hero { background: linear-gradient(135deg, #53dfa0, var(--green-light) 50%, var(--green)); color: #fff; text-align: center; padding: 64px 24px 56px; }
+  .hero h1 { font-size: 2rem; margin-bottom: 8px; }
+  .hero p { opacity: .95; }
+  main { max-width: 720px; margin: 0 auto; padding: 40px 24px 64px; }
+  h2 { color: var(--green); margin: 40px 0 12px; border-bottom: 2px solid var(--mint); padding-bottom: 6px; }
+  ul { padding-left: 1.4em; }
+  li { margin: 6px 0; }
+  .steps li { margin: 10px 0; }
+  .note { background: var(--mint); border-radius: 12px; padding: 16px 20px; margin-top: 12px; }
+  footer { text-align: center; color: #6b7f78; font-size: .85rem; padding: 24px; border-top: 1px solid #e5efeb; }
+  a { color: var(--green); }
+</style>
+</head>
+<body>
+<header class="hero">
+  <h1>ピッと登録</h1>
+  <p>商品リストに、バーコードをピッと割り当て。</p>
+</header>
+<main>
+  <h2>ピッと登録とは</h2>
+  <p>スプレッドシートや CSV の商品リストに、カメラで読み取ったバーコード(JAN コードなど)を次々に割り当てていく iOS アプリです。棚卸し、商品マスタの整備、ネットショップの出品準備など、「表に JAN を手入力する」作業をまるごと置き換えます。</p>
+
+  <h2>使い方</h2>
+  <ol class="steps">
+    <li><strong>取り込む</strong> — スプレッドシートからコピーした表を貼り付けるか、CSV ファイルを読み込みます(UTF-8 / Shift_JIS 対応)</li>
+    <li><strong>スキャンする</strong> — 商品名を確認しながらカメラをかざすと、読み取り成功で自動的に次の商品へ進みます</li>
+    <li><strong>書き出す</strong> — 結果をコピーしてスプレッドシートへ貼り付け、または CSV 保存・共有</li>
+  </ol>
+
+  <h2>特長</h2>
+  <ul>
+    <li>対応バーコード: JAN-13 / JAN-8 / UPC-A / UPC-E / Code128 / Code39 / QR コード</li>
+    <li>同じコードの二重読み取り防止・重複コードの警告つき</li>
+    <li>読めないバーコードは手動入力で救済</li>
+    <li>途中で終了しても、続きから再開できます</li>
+    <li>完全オフライン。データはすべて端末内に保存され、外部へ送信されません</li>
+  </ul>
+
+  <h2>よくある質問</h2>
+  <p><strong>Q. データはどこに保存されますか?</strong><br>
+  お使いの iPhone の中だけに保存されます。本アプリはインターネット通信を行いません。詳しくは<a href="./privacy.html">プライバシーポリシー</a>をご覧ください。</p>
+  <p><strong>Q. バーコードが読み取れません。</strong><br>
+  画面の黄色い枠に読みたいバーコードだけが入るようにかざしてください。暗い場所ではスキャン画面右上のライトボタンをお試しください。それでも読めない場合は「手動入力」から直接入力できます。</p>
+  <p><strong>Q. Excel でも使えますか?</strong><br>
+  Excel からコピーした表の貼り付け、CSV ファイルの読み込み(UTF-8 / Shift_JIS)に対応しています。書き出した CSV は Excel でそのまま開けます。</p>
+
+  <h2>お問い合わせ</h2>
+  <div class="note">
+    <p>ご意見・不具合のご報告は下記までお願いします。</p>
+    <p>メール: <a href="mailto:CONTACT@example.com">CONTACT@example.com</a>(公開前に実際のアドレスへ差し替えてください)</p>
+  </div>
+</main>
+<footer>© 2026 ステラクリエイト | <a href="./privacy.html">プライバシーポリシー</a></footer>
+</body>
+</html>

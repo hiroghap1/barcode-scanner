@@ -11,6 +11,7 @@ struct HomeView: View {
     @Query(sort: \Project.updatedAt, order: .reverse) private var projects: [Project]
 
     @State private var isImportPresented = false
+    @State private var isSettingsPresented = false
     @State private var projectToDelete: Project?
     @State private var projectToRename: Project?
     @State private var renameText = ""
@@ -34,6 +35,14 @@ struct HomeView: View {
                     .frame(height: 30)
                     .accessibilityLabel("ピッと登録")
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("設定", systemImage: "gearshape") {
+                    isSettingsPresented = true
+                }
+            }
+        }
+        .sheet(isPresented: $isSettingsPresented) {
+            SettingsView()
         }
         .safeAreaInset(edge: .bottom) {
             Button {

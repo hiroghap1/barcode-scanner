@@ -1,10 +1,14 @@
 import AudioToolbox
 import UIKit
 
-/// スキャン成功時のフィードバック(音 + 振動)
+/// スキャン成功時のフィードバック(音 + 振動)。設定でそれぞれオフにできる
 enum ScanFeedback {
     static func playSuccess() {
-        AudioServicesPlaySystemSound(1057) // Tink
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        if AppSettings.isSoundEnabled {
+            AudioServicesPlaySystemSound(1057) // Tink
+        }
+        if AppSettings.isHapticsEnabled {
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
     }
 }
