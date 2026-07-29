@@ -78,8 +78,9 @@ struct RecordListView: View {
                             .font(.headline)
                             .foregroundStyle(.primary)
                             .lineLimit(1)
-                        Image(systemName: "pencil")
-                            .font(.subheadline)
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.title3)
+                            .symbolRenderingMode(.hierarchical)
                             .foregroundStyle(.secondary)
                     }
                 }
