@@ -289,6 +289,7 @@ struct ScanView: View {
             }
         }
         .padding(.horizontal)
+        .padding(.top, 14)
         .padding(.bottom, 8)
         .background(Color(.systemBackground))
     }
